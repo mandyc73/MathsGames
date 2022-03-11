@@ -1,0 +1,7 @@
+﻿<div>@Result.NumberCorrect / @Result.NumberOfQuestions in @Result.TimeTakenString</div>
+
+@code {
+    [Parameter]
+    public Result Result { get; set; } = new Result();
+
+}

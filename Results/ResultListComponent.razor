@@ -1,0 +1,9 @@
+﻿@foreach(Result result in ResultList)
+{
+    <ResultRowComponent Result="result"></ResultRowComponent>
+}
+
+@code {
+    [Parameter]
+    public List<Result> ResultList { get; set; } = new List<Result>();
+}

@@ -1,0 +1,49 @@
+﻿@page "/results"
+
+<h1>Results</h1>
+<p>The results will refresh every time you start a new session of games. Results are not stored between sessions.</p>
+@if (GameResults.Keys.Count()>0)
+{
+    @foreach (string key in GameResults.Keys)
+    {
+        <h2>@key - @GameResults[key].ResultCount round@(GameResults[key].ResultCount>1?"s":"")</h2>
+        <ResultListComponent ResultList="GameResults[key].ResultList"></ResultListComponent>
+    }
+
+}
+else
+{
+    <p>You haven't played any games yet!</p>
+    <p>Play either <a href="/flash_cards">Flash cards</a> or <a href="/speed_challenge">Speed Challenge</a> and see your results here.</p>
+}
+
+@inject ResultService ResultService;
+@code {
+    private Dictionary<string, GameResult> GameResults = new Dictionary<string, GameResult>();
+    private string[] Games = new string[] { "Flash Cards", "Speed Challenge" };
+    private int NumberOfResults = 0;
+    protected override void OnInitialized()
+    {
+        foreach(string game in Games)
+        {
+            List<Result> results = ResultService.GetGameResults(game);
+            int count = results.Count();
+            if (count > 0)
+            {
+                GameResults.Add(game, new GameResult(results.Count(), results));
+            }       
+        }
+    }
+
+    private class GameResult
+    {
+        public int ResultCount { get; set; }
+        public List<Result> ResultList { get; set; } = new List<Result>();
+        public GameResult(int count, List<Result> list)
+        {
+            ResultCount = count;
+            ResultList = list;
+        }
+    }
+
+}

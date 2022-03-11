@@ -1,0 +1,117 @@
+﻿@page "/flash_cards"
+<h1>Flash Cards</h1>
+<p>Cards will appear one by one. Put your answer in the box and press ENTER for the next one.</p>
+<main class="game">
+    <section class="question">@NumberOne   x    @NumberTwo</section>
+    @if (!IsHidden)
+    {
+        <input type="text" @bind-value="Answer" @bind-value:event="oninput" autofocus="autofocus" @onkeydown="CheckForEnter"/>
+    }
+    
+   
+
+    
+    @if (Results.Count > 0)
+    {
+        <div>
+            <h1>Results</h1>
+            <p>@NumberCorrect / @Results.Keys.Count</p>
+            <table class="results">
+                @foreach (int key in Results.Keys)
+                {
+                    <tr>
+                        <td>@Results[key].NumberOne x @Results[key].NumberTwo</td>
+                        <td> = @Results[key].Answer</td>
+                        @if(@Results[key].Answer == @Results[key].CorrectAnswer)
+                        {
+                            <td><span class="oi oi-check"></span></td>
+                        }
+                        else
+                        {
+                            <td><span class="oi oi-x"></span>@Results[key].CorrectAnswer</td>
+                        }
+                    </tr>
+               
+            } 
+        </table>
+    </div>}
+</main>
+@inject IJSRuntime js;
+@code{
+    private Random Random = new Random();
+    private int NumberOne;
+    private int NumberTwo;
+    private string? CorrectAnswer;
+    private string? Answer;
+    private string? Result;
+
+    private int StartingTable = 0;
+    private int EndingTable = 12;
+
+    private bool IsHidden = false;
+
+    private Dictionary<int, Round> Results = new Dictionary<int, Round>();
+
+    private int NumberCorrect = 0;
+
+
+
+
+    protected override void OnInitialized()
+    {
+        Refresh();
+    }
+
+    private void CheckAnswer()
+    {
+        Console.WriteLine($"CorrectAnswer: {CorrectAnswer}");
+        Console.WriteLine($"Answer: {Answer}");
+
+        if(CorrectAnswer == Answer)
+        {
+            NumberCorrect++;
+
+        }
+        Results.Add(Results.Keys.Count + 1, new Round(NumberOne, NumberTwo, Convert.ToInt32(Answer)));
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        NumberOne = Random.Next(StartingTable, EndingTable+1);
+        NumberTwo = Random.Next(StartingTable, EndingTable+1);
+        int CorrectAnswerInt = NumberOne * NumberTwo;
+        CorrectAnswer = CorrectAnswerInt.ToString();
+        Answer = null;
+        Result = null;
+        //answerInput.FocusAsync();
+    }
+
+    public class Round
+    {
+        public int NumberOne{ get; set; }
+        public int NumberTwo { get; set; }
+        public int CorrectAnswer {
+            get
+            {
+                return NumberOne * NumberTwo;
+            }
+        }
+        public int? Answer{ get; set; }
+
+        public Round(int one, int two, int answer)
+        {
+            NumberOne = one;
+            NumberTwo = two;
+            Answer = answer;
+        }
+
+
+    }
+
+    private void CheckForEnter(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+            CheckAnswer();
+    }
+}

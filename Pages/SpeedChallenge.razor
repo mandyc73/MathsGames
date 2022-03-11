@@ -1,0 +1,107 @@
+﻿@page "/speed_challenge"
+
+<PageTitle>Speed Challenge</PageTitle>
+
+<h1>Speed Challenge</h1>
+<p>Type your answer into each box and press TAB to the next one.</p>
+<p>Your questions will appear when you hit the Start button.</p>
+
+@if (!TimerIsRunning && !TimerHasStopped)
+{
+    <button class="btn btn-start" @onclick="StartTimer">Start</button>
+}
+@if (TimerIsRunning || TimerHasStopped)
+{
+    <section class="questions">
+        @foreach (Problem problem in Problems)
+        {
+            <ProblemRowComponent Problem=problem></ProblemRowComponent>
+        }
+</section>
+
+    @if (TimerIsRunning)
+    {
+        <button class="btn btn-stop" @onclick="StopTimer">Stop</button>
+    }
+    @if (TimerHasStopped)
+    {
+        <div>You took @TimeTaken and got @CurrentResult.NumberCorrect out of @NumberOfQuestions</div>
+        <div>Can you beat that next time?</div>
+        <button class="btn btn-primary" @onclick="Reset">Go Again</button>
+    }
+}
+@inject ProblemService ProblemService
+@inject ResultService ResultService
+@code {
+    private int NumberOfQuestions { get; set; } = 40;
+    private int NumberCorrect { get; set; } = 0;
+
+    private int LowestNumber { get; set; } = 0;
+    private int HighestNumber { get; set; } = 12;
+
+    private bool TimerIsRunning { get; set; } = false;
+    private bool TimerHasStopped { get; set; } = false;
+
+    private string TimeTaken = "";
+
+    private Result CurrentResult { get; set; } = new Result();
+
+    private DateTime TimeStarted { get; set; } = DateTime.Now;
+    private DateTime TimeStopped { get; set; } = DateTime.Now;
+    private TimeSpan ElapsedTime { get; set; } = new TimeSpan();
+
+    private List<Problem> Problems = new List<Problem>();
+
+    protected override void OnInitialized()
+    {
+        GetProblems();
+    }
+
+    private void GetProblems()
+    {
+        Problems = ProblemService.CreateProblems(NumberOfQuestions, LowestNumber, HighestNumber);
+    }
+
+    private void StartTimer()
+    {
+        TimerIsRunning = true;
+        TimeStarted = DateTime.Now;
+    }
+
+    private void StopTimer()
+    {
+        TimerHasStopped = true;
+        TimerIsRunning = false;
+        TimeStopped = DateTime.Now;
+        ElapsedTime = TimeStopped - TimeStarted;
+        int Minutes = ElapsedTime.Minutes;
+        int Seconds = ElapsedTime.Seconds;
+        string minuteString = (Minutes > 1 || Minutes ==0)? "minutes" : "minute";
+        string secondString = Seconds > 1 || Seconds == 0? "seconds" : "second";
+
+        TimeTaken = $"{Minutes} {minuteString} {Seconds} {secondString}";
+        CurrentResult = new Result("Speed Challenge", NumberOfQuestions, Problems, ElapsedTime);
+        CalculateResults();
+    }
+
+    private void CalculateResults()
+    {
+
+        foreach(Problem problem in Problems)
+        {
+            Console.WriteLine($"{problem.Answer==problem.CorrectAnswer}");
+            if (problem.Answer == problem.CorrectAnswer)
+                CurrentResult.NumberCorrect++;
+        }
+        ResultService.AddResult(CurrentResult);
+
+    }
+
+    private void Reset()
+    {
+        NumberCorrect = 0;
+        GetProblems();
+        TimerHasStopped = false;
+        StartTimer();
+    }
+}

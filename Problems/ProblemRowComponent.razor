@@ -1,0 +1,16 @@
+﻿<div class="problem-row">
+    <span>@Problem.ToString() = </span><input type="text" @bind-value="Problem.AnswerString" @bind-value:event="oninput" @onkeydown="CheckForEnter"/></div>
+
+
+@code {
+    [Parameter]
+    public Problem Problem { get; set; } = new Problem();
+
+
+
+    private void CheckForEnter(KeyboardEventArgs args){
+        if(args.Key == "Enter" || args.Key == "NumpadEnter"){
+            
+        }
+    }
+}
